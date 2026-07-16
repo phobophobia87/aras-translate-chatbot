@@ -41,8 +41,8 @@ export default async function handler(req, res) {
 
     const contextText = matchedDocs.map(doc => doc.pageContent).join("\n\n");
 
-    // ۴. راه‌اندازی مدل جمینای برای تولید جواب نهایی
-    const chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  // ۴. راه‌اندازی مدل جمینای برای تولید جواب نهایی
+    const chatModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // 👈 تغییر به مدل جدید و فعال
 
     const prompt = `
 تو پشتیبان هوشمند و سخنگوی دارالترجمه رسمی ارس هستی. با لحنی مودبانه، حرفه‌ای و صمیمی به زبان فارسی پاسخ کاربر را بده.
