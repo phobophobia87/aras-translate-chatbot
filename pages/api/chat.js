@@ -24,9 +24,11 @@ export default async function handler(req, res) {
     if (!message) return res.status(400).json({ error: "پیامی ارسال نشده است." });
 
     // ۲. تولید بردار (اعداد) برای سوال کاربر
+    // ۲. تولید بردار (اعداد) برای سوال کاربر
+    // ۲. تولید بردار (اعداد) برای سوال کاربر
     const embeddings = new GoogleGenerativeAIEmbeddings({
       apiKey: GEMINI_API_KEY,
-      modelName: "models/text-embedding-004",
+      modelName: "text-embedding-004", // ✅ فرمت صحیح
     });
     const userVector = await embeddings.embedQuery(message);
 

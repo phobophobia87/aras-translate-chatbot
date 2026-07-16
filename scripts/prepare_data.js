@@ -18,10 +18,11 @@ async function prepareData() {
   const texts = await textSplitter.splitDocuments(documents);
 
   // ۳. ساخت امبدینگ‌ها با جمینای
-  const embeddings = new GoogleGenerativeAIEmbeddings({
-    apiKey: GEMINI_API_KEY,
-    modelName: "models/text-embedding-004",
-  });
+  // ۲. تولید بردار (اعداد) برای سوال کاربر
+    const embeddings = new GoogleGenerativeAIEmbeddings({
+      apiKey: GEMINI_API_KEY,
+      modelName: "text-embedding-004", // ✅ فرمت صحیح
+    });
 
   console.log("🔄 در حال تولید وکتورها...");
   const dataToSave = [];
