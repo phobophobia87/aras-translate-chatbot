@@ -1,6 +1,5 @@
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import fileData from "../../embeddings.json"; // 👈 این خط معجزه می‌کند! دیتابیس مستقیم وارد مموری می‌شود
+import fileData from "../../embeddings.json"; 
 
 // ۱. تابع ریاضی برای مقایسه شباهت دو بردار
 function cosineSimilarity(vecA, vecB) {
@@ -14,7 +13,6 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 export default async function handler(req, res) {
-  // فقط متد POST را قبول می‌کنیم
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
@@ -23,14 +21,13 @@ export default async function handler(req, res) {
 
     if (!message) return res.status(400).json({ error: "پیامی ارسال نشده است." });
 
-    // ۲. تولید بردار (اعداد) برای سوال کاربر
-    // ۲. تولید بردار (اعداد) برای سوال کاربر
-    // ۲. تولید بردار (اعداد) برای سوال کاربر
-    const embeddings = new GoogleGenerativeAIEmbeddings({
-      apiKey: GEMINI_API_KEY,
-      modelName: "text-embedding-004", // ✅ فرمت صحیح
-    });
-    const userVector = await embeddings.embedQuery(message);
+    // راه‌اندازی SDK رسمی گوگل
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+    // ۲. تولید بردار برای سوال کاربر مستقیماً توسط SDK گوگل (بدون نیاز به Langchain)
+    const embedModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    const embedResult = await embedModel.embedContent(message);
+    const userVector = embedResult.embedding.values;
 
     // ۳. پیدا کردن ۳ تا از مرتبط‌ترین بخش‌های فایل دیتابیس
     const matchedDocs = fileData
@@ -41,12 +38,10 @@ export default async function handler(req, res) {
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 3);
 
-    // چسباندن متن‌های پیدا شده به هم
     const contextText = matchedDocs.map(doc => doc.pageContent).join("\n\n");
 
-    // ۴. راه‌اندازی مدل جمینای برای تولید جواب
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // ۴. راه‌اندازی مدل جمینای برای تولید جواب نهایی
+    const chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
 تو پشتیبان هوشمند و سخنگوی دارالترجمه رسمی ارس هستی. با لحنی مودبانه، حرفه‌ای و صمیمی به زبان فارسی پاسخ کاربر را بده.
@@ -62,7 +57,7 @@ ${message}
 `;
 
     // ۵. ارسال درخواست به مدل و دریافت متن
-    const result = await model.generateContent(prompt);
+    const result = await chatModel.generateContent(prompt);
     const botAnswer = result.response.text();
 
     return res.status(200).json({ answer: botAnswer });
