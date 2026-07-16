@@ -8,13 +8,13 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const response = await fetch("/api", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ question }),
-    });
+    const response = await fetch("/api/chat", { // آدرس دقیق به فایل chat.js اشاره کند
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ message: question }), // ارسال مقدار با کلید مورد نظر بک‌اند (message)
+});
     const data = await response.json();
     setAnswer(data.answer);
     setLoading(false);

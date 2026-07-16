@@ -1,50 +1,43 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import fs from "fs";
-import path from "path";
 
-// 1. کلید API Gemini رو اینجا قرار بده
-const GEMINI_API_KEY=process.env.GEMINI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// 2. تابع برای خواندن فایلهای متنی از پوشه `data`
-async function loadDocuments() {
-  const dataDir = path.join(process.cwd(), "data");
-  const files = fs.readdirSync(dataDir);
+async function prepareData() {
+  // ۱. بارگذاری فایل PDF
+  const loader = new PDFLoader("./data/aras_knowledge_graph.pdf"); // مطمئن شوید نام فایل با پی‌دی‌اف شما یکی است
+  const documents = await loader.load();
 
-  let documents = [];
-  for (const file of files) {
-    if (file.endsWith(".txt")) {
-      const filePath = path.join(dataDir, file);
-      const content = fs.readFileSync(filePath, "utf-8");
-      documents.push(content);
-    }
-  }
+  // ۲. تقسیم متن
+  const textSplitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 800,
+    chunkOverlap: 150,
+  });
+  const texts = await textSplitter.splitDocuments(documents);
 
-  return documents;
-}
+  // ۳. ساخت امبدینگ‌ها با جمینای
+  const embeddings = new GoogleGenerativeAIEmbeddings({
+    apiKey: GEMINI_API_KEY,
+    modelName: "models/text-embedding-004",
+  });
 
-// 3. تابع برای تولید Embedding با Gemini
-async function generateEmbeddings() {
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "embedding-001" }); // مدل Embedding Gemini
+  console.log("🔄 در حال تولید وکتورها...");
+  const dataToSave = [];
 
-  const documents = await loadDocuments();
-  const embeddings = [];
-
-  for (const doc of documents) {
-    const result = await model.embedContent(doc);
-    embeddings.push({
-      content: doc,
-      embedding: result.embedding.values,
+  for (const doc of texts) {
+    const vector = await embeddings.embedQuery(doc.pageContent);
+    dataToSave.push({
+      pageContent: doc.pageContent,
+      metadata: doc.metadata,
+      vector: vector
     });
   }
 
-  // 4. ذخیره Embeddingها در فایل JSON
-  fs.writeFileSync(
-    path.join(process.cwd(), "embeddings.json"),
-    JSON.stringify(embeddings, null, 2)
-  );
-  console.log("✅ Embeddingها با موفقیت ذخیره شدند!");
+  // ۴. ذخیره به صورت یک فایل JSON تمیز و سبک
+  fs.writeFileSync("./embeddings.json", JSON.stringify(dataToSave, null, 2));
+  console.log("✅ دیتابیس برداری به صورت فایل JSON با موفقیت ساخته شد!");
 }
 
-// 5. اجرای تابع
-generateEmbeddings().catch(console.error);
+prepareData().catch(console.error);
