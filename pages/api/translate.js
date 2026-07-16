@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   // کلید API را از تنظیمات امن ورسل می‌خوانیم
   // کد جدید:
   const apiKey = process.env.GEMINI_API_KEY_TRANSLATOR;
-  const model = 'gemini-2.5-flash'; // یا gemini-2.5-flash
+  const model = 'gemini-3.5-flash'; // یا gemini-2.5-flash
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   const prompt = `You are an expert translator for an official translation agency. Translate the following text into ${target_lang}. Provide ONLY the final translation. Do not add any intros, explanations, greetings, or notes. Keep the exact paragraphs and formatting.\n\nText:\n${text}`;
