@@ -1,46 +1,91 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
-export default function Home() {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+export default function Chat() {
+  const [messages, setMessages] = useState([
+    { role: "bot", text: "سلام! روزتون بخیر. به پشتیبانی هوشمند دارالترجمه رسمی ارس خوش آمدید. چطور می‌توانم کمکتان کنم؟" }
+  ]);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
 
-  const handleSubmit = async (e) => {
+  // اسکرول خودکار به پایین بعد از هر پیام
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
+
+  const sendMessage = async (e) => {
     e.preventDefault();
+    if (!input.trim()) return;
+
+    const userMsg = input;
+    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+    setInput("");
     setLoading(true);
-    const response = await fetch("/api/chat", { // آدرس دقیق به فایل chat.js اشاره کند
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ message: question }), // ارسال مقدار با کلید مورد نظر بک‌اند (message)
-});
-    const data = await response.json();
-    setAnswer(data.answer);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg }),
+      });
+      const data = await res.json();
+      setMessages((prev) => [...prev, { role: "bot", text: data.answer || "مشکلی پیش آمد." }]);
+    } catch (err) {
+      setMessages((prev) => [...prev, { role: "bot", text: "ارتباط با سرور قطع شد. لطفاً دوباره تلاش کنید." }]);
+    }
     setLoading(false);
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px", direction: "rtl" }}>
-      <h1>پشتیبانی هوشمند دارالترجمه ارس</h1>
-      <form onSubmit={handleSubmit}>
+    <div style={{ fontFamily: "Tahoma, sans-serif", backgroundColor: "#f9fafb", height: "100vh", display: "flex", flexDirection: "column", direction: "rtl" }}>
+      {/* هدر چت‌بات */}
+      <div style={{ backgroundColor: "#004085", color: "white", padding: "15px", textAlign: "center", fontWeight: "bold", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+        پشتیبانی هوشمند دارالترجمه ارس
+      </div>
+
+      {/* محیط پیام‌ها */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
+        {messages.map((msg, index) => (
+          <div key={index} style={{
+            alignSelf: msg.role === "user" ? "flex-start" : "flex-end",
+            backgroundColor: msg.role === "user" ? "#007bff" : "#e9ecef",
+            color: msg.role === "user" ? "white" : "black",
+            padding: "10px 15px",
+            borderRadius: "15px",
+            maxWidth: "80%",
+            lineHeight: "1.6",
+            borderBottomRightRadius: msg.role === "bot" ? "0" : "15px",
+            borderBottomLeftRadius: msg.role === "user" ? "0" : "15px",
+          }}>
+            {msg.text}
+          </div>
+        ))}
+        {loading && (
+          <div style={{ alignSelf: "flex-end", backgroundColor: "#e9ecef", padding: "10px 15px", borderRadius: "15px", color: "#6c757d" }}>
+            در حال پردازش...
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* فرم ارسال */}
+      <form onSubmit={sendMessage} style={{ display: "flex", padding: "10px", backgroundColor: "white", borderTop: "1px solid #ddd" }}>
         <input
           type="text"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="سوال خود را وارد کنید..."
-          style={{ width: "100%", padding: "10px", margin: "10px 0" }}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="سوال خود را بپرسید..."
+          style={{ flex: 1, padding: "10px", border: "1px solid #ccc", borderRadius: "20px", outline: "none", direction: "rtl" }}
         />
-        <button type="submit" disabled={loading}>
-          {loading ? "در حال پردازش..." : "ارسال"}
+        <button type="submit" disabled={loading} style={{
+          backgroundColor: "#004085", color: "white", border: "none", borderRadius: "20px", padding: "0 20px", marginRight: "10px", cursor: loading ? "not-allowed" : "pointer"
+        }}>
+          ارسال
         </button>
       </form>
-      {answer && (
-        <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f0f0f0", borderRadius: "5px" }}>
-          <strong>پاسخ:</strong>
-          <p>{answer}</p>
-        </div>
-      )}
     </div>
   );
 }
