@@ -24,7 +24,8 @@ export default async function handler(req, res) {
   }
 
   // کلید API را از تنظیمات امن ورسل می‌خوانیم
-  const apiKey = process.env.GEMINI_API_KEY; 
+  // کد جدید:
+  const apiKey = process.env.GEMINI_API_KEY_TRANSLATOR;
   const model = 'gemini-2.5-flash'; // یا gemini-2.5-flash
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
