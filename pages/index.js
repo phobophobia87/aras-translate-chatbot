@@ -8,13 +8,24 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // اسکرول خودکار به پایین بعد از هر پیام
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);
+
+  // تابع برای تبدیل **متن** به حالت توپر (Bold)
+  const formatText = (text) => {
+    if (!text) return "";
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -40,8 +51,20 @@ export default function Chat() {
   };
 
   return (
-    <div style={{ fontFamily: "Tahoma, sans-serif", backgroundColor: "#f9fafb", height: "100vh", display: "flex", flexDirection: "column", direction: "rtl" }}>
-      {/* هدر چت‌بات */}
+    <div style={{ backgroundColor: "#f9fafb", height: "100vh", display: "flex", flexDirection: "column", direction: "rtl" }}>
+      
+      {/* اعمال فونت وزیرمتن به کل بخش‌های چت‌بات */}
+      <style>{`
+        @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+        * {
+          font-family: 'Vazirmatn', Tahoma, sans-serif !important;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+      `}</style>
+
+      {/* هدر */}
       <div style={{ backgroundColor: "#004085", color: "white", padding: "15px", textAlign: "center", fontWeight: "bold", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
         پشتیبانی هوشمند دارالترجمه ارس
       </div>
@@ -53,18 +76,18 @@ export default function Chat() {
             alignSelf: msg.role === "user" ? "flex-start" : "flex-end",
             backgroundColor: msg.role === "user" ? "#007bff" : "#e9ecef",
             color: msg.role === "user" ? "white" : "black",
-            padding: "10px 15px",
+            padding: "12px 18px",
             borderRadius: "15px",
-            maxWidth: "80%",
-            lineHeight: "1.6",
+            maxWidth: "85%",
+            lineHeight: "1.8",
             borderBottomRightRadius: msg.role === "bot" ? "0" : "15px",
             borderBottomLeftRadius: msg.role === "user" ? "0" : "15px",
           }}>
-            {msg.text}
+            {formatText(msg.text)}
           </div>
         ))}
         {loading && (
-          <div style={{ alignSelf: "flex-end", backgroundColor: "#e9ecef", padding: "10px 15px", borderRadius: "15px", color: "#6c757d" }}>
+          <div style={{ alignSelf: "flex-end", backgroundColor: "#e9ecef", padding: "12px 18px", borderRadius: "15px", color: "#6c757d" }}>
             در حال پردازش...
           </div>
         )}
@@ -78,10 +101,10 @@ export default function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="سوال خود را بپرسید..."
-          style={{ flex: 1, padding: "10px", border: "1px solid #ccc", borderRadius: "20px", outline: "none", direction: "rtl" }}
+          style={{ flex: 1, padding: "12px", border: "1px solid #ccc", borderRadius: "20px", outline: "none", direction: "rtl" }}
         />
         <button type="submit" disabled={loading} style={{
-          backgroundColor: "#004085", color: "white", border: "none", borderRadius: "20px", padding: "0 20px", marginRight: "10px", cursor: loading ? "not-allowed" : "pointer"
+          backgroundColor: "#004085", color: "white", border: "none", borderRadius: "20px", padding: "0 25px", marginRight: "10px", cursor: loading ? "not-allowed" : "pointer"
         }}>
           ارسال
         </button>

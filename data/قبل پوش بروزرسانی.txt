@@ -1,0 +1,6 @@
+node scripts/prepare_data.js
+
+
+git add .
+git commit -m "Update knowledge base"
+git push origin main
