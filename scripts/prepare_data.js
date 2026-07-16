@@ -1,5 +1,4 @@
-import "dotenv/config"; // 👈 این خط جادویی متغیرهای فایل .env را در سیستم محلی شما می‌خواند
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import "dotenv/config";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import fs from "fs";
@@ -7,38 +6,38 @@ import fs from "fs";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 async function prepareData() {
-  // ۱. بارگذاری فایل PDF
-  const loader = new PDFLoader("./data/aras_knowledge_graph.pdf");
-  const documents = await loader.load();
+  // ۱. خواندن مستقیم فایل متنی فارسی
+  const rawText = fs.readFileSync("./data/aras_knowledge.txt", "utf-8");
 
-  // ۲. تقسیم متن
+  // ۲. تقسیم متن به بخش‌های کوچک‌تر
   const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 800,
-    chunkOverlap: 150,
+    chunkSize: 600,
+    chunkOverlap: 100,
   });
-  const texts = await textSplitter.splitDocuments(documents);
+  
+  // شبیه‌سازی ساختار سند برای سازگاری با بقیه کدها
+  const texts = await textSplitter.createDocuments([rawText]);
 
   // ۳. ساخت امبدینگ‌ها با مدل جدید جمینای
   const embeddings = new GoogleGenerativeAIEmbeddings({
     apiKey: GEMINI_API_KEY,
-    modelName: "gemini-embedding-001", // نام مدل آپدیت شده
+    modelName: "gemini-embedding-001",
   });
 
-  console.log("🔄 در حال تولید وکتورها...");
+  console.log("🔄 در حال تولید وکتورها برای متون فارسی...");
   const dataToSave = [];
 
   for (const doc of texts) {
     const vector = await embeddings.embedQuery(doc.pageContent);
     dataToSave.push({
       pageContent: doc.pageContent,
-      metadata: doc.metadata,
       vector: vector
     });
   }
 
   // ۴. ذخیره به صورت فایل JSON
   fs.writeFileSync("./embeddings.json", JSON.stringify(dataToSave, null, 2));
-  console.log("✅ دیتابیس برداری به صورت فایل JSON با موفقیت ساخته شد!");
+  console.log("✅ دیتابیس برداری متنی با موفقیت ساخته شد!");
 }
 
 prepareData().catch(console.error);
