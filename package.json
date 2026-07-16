@@ -1,0 +1,21 @@
+{
+  "name": "aras-translate-chatbot",
+  "version": "1.0.0",
+  "description": "پشتیبانی هوشمند دارالترجمه ارس",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "langchain": "^0.0.150",
+    "openai": "^4.20.0",
+    "pdf-parse": "^1.1.1",
+    "@google/generative-ai": "^0.1.0",
+    "@langchain/google-genai": "^0.0.10"
+  }
+}
