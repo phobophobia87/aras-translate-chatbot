@@ -25,7 +25,8 @@ export default async function handler(req, res) {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
     // ۲. تولید بردار برای سوال کاربر مستقیماً توسط SDK گوگل (بدون نیاز به Langchain)
-    const embedModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    // ۲. تولید بردار برای سوال کاربر مستقیماً توسط SDK گوگل
+    const embedModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" }); // 👈 نام مدل آپدیت شد
     const embedResult = await embedModel.embedContent(message);
     const userVector = embedResult.embedding.values;
 
